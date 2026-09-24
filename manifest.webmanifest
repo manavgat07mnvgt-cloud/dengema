@@ -1,0 +1,20 @@
+{
+  "name": "Dengem",
+  "short_name": "Dengem",
+  "description": "Kalori, protein, su, adım ve kilo takibi. Tabak fotoğrafından yapay zekâ ile besin analizi.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F5F0",
+  "theme_color": "#2F6B45",
+  "lang": "tr",
+  "dir": "auto",
+  "categories": ["health", "fitness", "food"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
