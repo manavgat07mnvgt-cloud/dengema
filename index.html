@@ -613,7 +613,7 @@ function day(k){ return S.days[k]||(S.days[k]={d:k,su:0,adim:0,meals:[]}); }
 
 let toastT;
 function toast(msg){ const el=$("#toast"); if(!el) return; el.textContent=msg; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2600); }
-function aiErr(e){ return t({not_granted:"err_not_granted",rate_limited:"err_rate",image_rejected:"err_image",invalid_json:"err_json",refused:"err_refused",session_expired:"err_session"}[e?.code]||"err_net"); }
+function aiErr(e){ const m=t({not_granted:"err_not_granted",rate_limited:"err_rate",image_rejected:"err_image",invalid_json:"err_json",refused:"err_refused",session_expired:"err_session"}[e?.code]||"err_net"); return e?.detail?m+" ("+String(e.detail).slice(0,160)+")":m; }
 
 /* =========================================================
    ÇERÇEVE
@@ -1065,10 +1065,12 @@ const API="/api/ai";
 function fileToB64(f){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ const sc=Math.min(1,1280/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc); c.getContext("2d").drawImage(img,0,0,c.width,c.height); res(c.toDataURL("image/jpeg",0.85).split(",")[1]); }; img.onerror=()=>rej({code:"image_rejected"}); img.src=URL.createObjectURL(f); }); }
 async function callAI(body,signal){
   let res; try{ res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal}); }
-  catch(e){ throw {code:e?.name==="AbortError"?"cancelled":"network"}; }
-  if(res.status===429) throw {code:"rate_limited"};
-  if(!res.ok) throw {code:"network"};
-  return res.json();
+  catch(e){ throw {code:e?.name==="AbortError"?"cancelled":"network",detail:"fetch: "+(e?.message||e)}; }
+  let j=null, raw=""; try{ raw=await res.text(); j=JSON.parse(raw); }catch{}
+  if(res.status===429||j?.error==="rate_limited") throw {code:"rate_limited",detail:j?.detail};
+  if(j?.error==="image_rejected") throw {code:"image_rejected",detail:j?.detail};
+  if(!res.ok||!j||j.error||typeof j.text!=="string") throw {code:"network",detail:j?.detail||("HTTP "+res.status+" "+raw.trim().slice(0,120))};
+  return j;
 }
 function makeSample(){
   const s=async(messages,opts={})=>{ const out=await callAI({messages},opts.signal); opts.onText?.({text:out.text,delta:out.text}); return {text:out.text,truncated:false}; };
